@@ -34,6 +34,27 @@ management interface at *http://localhost:8080/pages/manage*
 while all the pages you create will be served at
 *http://localhost:8080/pages/PAGENAME*.
 
+Restricting access to pages
+-----------------------------
+
+flatpages supports restricting access to pages only to users
+that has a specific permission. When creating the page
+set it to *Public*, *Only Registered Users* or any of
+the ``Permission`` your application provides.
+
+Loading pages from file
+-----------------------------
+
+When working with static pages it's often easier to include
+the starting version or new versions into the source code itself
+instead of providing a database migration each time the content
+has to be changed.
+
+To allow this, flatpages permits to load the page content
+from a file local to the application itself. To do so
+it's sufficient to set ``file://path/relative/to/application/package``
+as the content of the static page.
+
 Options
 -----------------------------
 
@@ -44,5 +65,5 @@ rendering a page, pass this to the plug call to set them:
     can be **html** or **rst** if you store pages in RST or HTML format.
 
   * ``templates`` -> This is a list of the templates available to render
-    the pages. Each entry is in the form: ``("engine:package.templates.path", "option name")``.
+    the pages. Each entry is in the form: ``("engine:package.templates.path", "Template Description")``.
 
