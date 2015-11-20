@@ -27,7 +27,7 @@ except IOError:
 
 setup(
     name='tgapp-flatpages',
-    version='0.2.0',
+    version='0.2.1',
     description='Pluggable application to manage static pages (/about) on DB with RST',
     long_description=README,
     author='Alessandro Molina',
