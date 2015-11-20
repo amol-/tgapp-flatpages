@@ -108,10 +108,13 @@ class FlatPagesAdminConfig(AdminConfig):
 
             def _build_actions(self, obj):
                 baseactions = super(self.table_filler.__class__, self.table_filler).__actions__(obj)
-                extraactions = Markup('''
-    <a href="%s/download" class="btn btn-default">
-        <span class="glyphicon glyphicon-download-alt"></span>
-    </a>''' % obj.uid)
+                if config['_flatpages']['format'] == 'rst':
+                    extraactions = Markup('''
+        <a href="%s/download" class="btn btn-default">
+            <span class="glyphicon glyphicon-download-alt"></span>
+        </a>''' % obj.uid)
+                else:
+                    extraactions = ''
                 return extraactions + baseactions
 
             @expose(content_type='application/pdf')

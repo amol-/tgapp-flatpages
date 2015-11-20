@@ -15,7 +15,8 @@ install_requires=[
     "tgext.admin >= 0.7.1",
     "tgext.crud >= 0.8.1",
     "genshi",
-    "filedepot"
+    "filedepot",
+    "rst2pdf"
 ]
 
 here = os.path.abspath(os.path.dirname(__file__))
