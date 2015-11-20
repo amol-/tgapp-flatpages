@@ -1,99 +1,147 @@
 # -*- coding: utf-8 -*-
 """Main Controller"""
-
-from tg import TGController, predicates, config, abort, override_template, tmpl_context
+from io import BytesIO
+from markupsafe import Markup
+from tg import TGController, predicates, config, abort, override_template, tmpl_context, Request
 from tg import expose, flash, require, url, lurl, request, redirect, validate
 from tg.caching import cached_property
-from tgext.crud import EasyCrudRestController
+from tgext.admin import AdminController, AdminConfig, CrudRestControllerConfig
+from tgext.admin.widgets import BootstrapAdminTableFiller
+from tgext.crud import EasyCrudRestController, addopts
 from tgext.pluggable import primary_key, app_model, plug_url
-from tw2.core import Deferred
-from tw2.forms import SingleSelectField, TextField
+from tw2.core import Deferred, CSSSource
+from tw2.forms import SingleSelectField, TextField, FileValidator
 
 from flatpages import model
+from flatpages.lib.widgets import MarkitUpArea
 from flatpages.model import DBSession
 
-from tgext.admin.layouts import BootstrapAdminLayout as BTLayout
-from tgext.crud.resources import crud_script, CSSSource
+from tgext.admin.layouts import BootstrapAdminLayout
+from depot.middleware import DepotMiddleware
+from tg.exceptions import HTTPNotFound
+from rst2pdf.createpdf import RstToPdf
 
 
-class ManageController(EasyCrudRestController):
+class FlatPagesAdminConfig(AdminConfig):
+    include_left_menu = False
+    layout = BootstrapAdminLayout
+    default_index_template = 'genshi:flatpages.templates.manage'
+
+    class flatfile(CrudRestControllerConfig):
+        class defaultCrudRestController(EasyCrudRestController):
+            response_type = 'text/html'
+            remember_values = ['file']
+
+            _get_current_user = lambda: getattr(request.identity['user'], primary_key(app_model.User).key)
+
+            __form_options__ = {
+                '__hide_fields__': ['author'],
+                '__omit_fields__': ['uid', '_id', 'updated_at', 'created_at'],
+                '__field_widget_args__': addopts(author={'value': Deferred(_get_current_user)})
+            }
+
+            __form_edit_options__ = {
+                '__field_validators__': {'file': FileValidator(required=False)}
+            }
+
+            __table_options__ = {
+                '__omit_fields__': ['_id', 'uid', 'author_id', 'created_at'],
+                '__xml_fields__': ['file'],
+
+                'file': lambda filler, o: Markup('<a href="%s">%s</a>' % (o.url, o.url))
+            }
+
+    class flatpage(CrudRestControllerConfig):
+        class defaultCrudRestController(EasyCrudRestController):
+            response_type = 'text/html'
+            crud_resources = [CSSSource(location='headbottom',
+                                       src='''
+        .crud-sidebar .active {
+            font-weight: bold;
+            border-left: 3px solid #eee;
+        }
+
+        @media (max-width: 991px) {
+            .pull-sm-right {
+                float: right;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .pull-md-right {
+                float: right;
+            }
+        }
+        ''')]
+
+            # Helpers to retrieve form data
+            _get_current_user = lambda: getattr(request.identity['user'], primary_key(app_model.User).key)
+            _get_templates = lambda: config['_flatpages']['templates']
+            _get_permissions = lambda: [('public', 'Public'), ('not_anonymous', 'Only Registered Users')] + \
+                                       DBSession.query(app_model.Permission.permission_name,
+                                                       app_model.Permission.description).all()
+
+            __form_options__ = {
+                '__hide_fields__': ['author'],
+                '__omit_fields__': ['uid', '_id', 'updated_at', 'created_at'],
+                '__field_order__': ['slug', 'title', 'template', 'required_permission'],
+                '__field_widget_types__': addopts(**{'template': SingleSelectField,
+                                           'slug': TextField,
+                                           'title': TextField,
+                                           'required_permission': SingleSelectField,
+                                           'content': MarkitUpArea}),
+                '__field_widget_args__': addopts(**{'author': {'value': Deferred(_get_current_user)},
+                                          'required_permission': {'prompt_text': None,
+                                                                  'options': Deferred(_get_permissions)},
+                                          'content': {'rows': 20},
+                                          'template': {'prompt_text': None,
+                                                       'options': Deferred(_get_templates)}})
+            }
+
+            __table_options__ = {
+                '__omit_fields__': ['_id', 'uid', 'author_id', 'created_at', 'template', 'content'],
+                '__xml_fields__': ['slug'],
+
+                'slug': lambda filler, o: Markup('<a href="%s">%s</a>' % (o.url, o.slug)),
+                '__actions__': lambda self, obj: request.controller_state.controller._build_actions(obj)
+            }
+
+            def _build_actions(self, obj):
+                baseactions = super(self.table_filler.__class__, self.table_filler).__actions__(obj)
+                extraactions = Markup('''
+    <a href="%s/download" class="btn btn-default">
+        <span class="glyphicon glyphicon-download-alt"></span>
+    </a>''' % obj.uid)
+                return extraactions + baseactions
+
+            @expose(content_type='application/pdf')
+            def download(self, pageid):
+                p = DBSession.query(model.FlatPage).get(pageid) or abort(404)
+                out = BytesIO()
+
+                rst2pdf = RstToPdf()
+                rst2pdf.createPdf(p.content, output=out)
+
+                out.seek(0)
+                return out.read()
+
+
+class FlatPagesAdminController(AdminController):
     allow_only = predicates.has_permission('flatpages')
-    title = "Manage FlatPages"
-    model = model.FlatPage
-    crud_resources = [crud_script,
-                      CSSSource(location='headbottom',
-                                src='''
-    .crud-sidebar .active {
-        font-weight: bold;
-        border-left: 3px solid #eee;
-    }
 
-    @media (max-width: 991px) {
-        .pull-sm-right {
-            float: right;
-        }
-    }
-
-    @media (min-width: 992px) {
-        .pull-md-right {
-            float: right;
-        }
-    }
-    ''')]
-
-    # Helpers to retrieve form data
-    _get_current_user = lambda: getattr(request.identity['user'], primary_key(app_model.User).key)
-    _get_templates = lambda: config['_flatpages']['templates']
-    _get_permissions = lambda: [('public', 'Public'), ('not_anonymous', 'Only Registered Users')] + \
-                               DBSession.query(app_model.Permission.permission_name,
-                                               app_model.Permission.description).all()
-
-    FORM_OPTIONS = {
-        '__entity__': model,
-        '__hide_fields__': ['author'],
-        '__omit_fields__': ['uid', '_id', 'updated_at', 'created_at'],
-        '__field_order__': ['slug', 'title', 'template', 'required_permission'],
-        '__field_widget_types__': {'template': SingleSelectField,
-                                   'slug': TextField,
-                                   'title': TextField,
-                                   'required_permission': SingleSelectField},
-        '__field_widget_args__': {'author': {'value': Deferred(_get_current_user)},
-                                  'required_permission': {'prompt_text': None,
-                                                          'options': Deferred(_get_permissions)},
-                                  'content': {'rows': 20},
-                                  'template': {'prompt_text': None,
-                                               'options': Deferred(_get_templates)}}
-    }
-
-    TABLE_OPTIONS = {
-        '__entity__': model,
-        '__omit_fields__': ['_id', 'uid', 'author_id', 'created_at', 'template'],
-    }
-
-    # Configure look&feel according to Bootstrap3 admin theme
-    table_type = type('TType', (BTLayout.TableBase,), TABLE_OPTIONS)
-    table_filler_type = type('TFType', (BTLayout.TableFiller,), {'__entity__': model})
-    edit_form_type = type('EFType', (BTLayout.EditableForm,), FORM_OPTIONS)
-    new_form_type = type('NFType', (BTLayout.AddRecordForm,), FORM_OPTIONS)
-
-    @property
-    def mount_point(self):
-        return plug_url('pages', '/manage')
-
-    def _before(self, *args, **kw):
-        super(ManageController, self)._before(*args, **kw)
-
-        if request.response_type not in ('text/html', None):
-            abort(406, 'Only HTML is supported')
-
-    @expose(inherit=True)
-    def get_all(self, *args, **kw):
-        override_template(self.get_all, 'genshi:flatpages.templates.manage')
-        return super(ManageController, self).get_all(*args, **kw)
+    def __init__(self):
+        super(FlatPagesAdminController, self).__init__(
+            [model.FlatPage,
+             model.FlatFile],
+            DBSession.wrapped_session,
+            config_type=FlatPagesAdminConfig
+        )
 
 
 class RootController(TGController):
     CACHE_EXPIRE = 7*86400  # 7 Days
+
+    depotmiddleware = DepotMiddleware(HTTPNotFound(), '/pages')
 
     @expose()
     def _default(self, page=None, *args, **kw):
@@ -116,6 +164,11 @@ class RootController(TGController):
                     tg_cache={'expire': self.CACHE_EXPIRE,
                               'key': '%s-%s' % (page.slug, page.updated_at)})
 
+    @expose(content_type='text/html')
+    def flatfiles(self, *args, **kwargs):
+        r = Request.blank('/pages/flatfiles/' + '/'.join(args))
+        return r.get_response(self.depotmiddleware)
+
     @cached_property
     def manage(self):
-        return ManageController(DBSession.wrapped_session)
+        return FlatPagesAdminController()

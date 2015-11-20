@@ -13,6 +13,7 @@ from datetime import datetime
 from tg import config
 from tg.caching import cached_property
 from flatpages.lib.formatters import FORMATTERS
+from depot.fields.sqlalchemy import UploadedFileField
 
 
 class FlatPage(DeclarativeBase):
@@ -55,3 +56,24 @@ class FlatPage(DeclarativeBase):
                 content = f.read()
 
         return formatter(content)
+
+
+class FlatFile(DeclarativeBase):
+    __tablename__ = 'flatpages_file'
+
+    uid = Column(Integer, autoincrement=True, primary_key=True)
+
+    name = Column(Unicode(99), index=True, unique=True, nullable=False)
+    file = Column(UploadedFileField(upload_storage='flatfiles'), nullable=False)
+
+    updated_at = Column(DateTime, nullable=False,
+                        default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False,
+                        default=datetime.utcnow)
+
+    author_id = Column(Integer, ForeignKey(primary_key(app_model.User)))
+    author = relation(app_model.User)
+
+    @cached_property
+    def url(self):
+        return plug_url('flatpages', '/flatfiles/' + self.file.file_id)

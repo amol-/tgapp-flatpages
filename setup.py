@@ -12,8 +12,10 @@ install_requires=[
     "TurboGears2 >= 2.3.0",
     "tgext.pluggable",
     "docutils",
-    "tgext.admin",
-    "genshi"
+    "tgext.admin >= 0.7.1",
+    "tgext.crud >= 0.8.1",
+    "genshi",
+    "filedepot"
 ]
 
 here = os.path.abspath(os.path.dirname(__file__))
