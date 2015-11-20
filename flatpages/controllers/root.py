@@ -140,6 +140,10 @@ class FlatPagesAdminController(AdminController):
             config_type=FlatPagesAdminConfig
         )
 
+    @expose()
+    def index(self, *args, **kwargs):
+        return super(FlatPagesAdminController, self).index(*args, **kwargs)
+
 
 class RootController(TGController):
     CACHE_EXPIRE = 7*86400  # 7 Days
