@@ -5,6 +5,7 @@ from markupsafe import Markup
 from tg import TGController, predicates, config, abort, override_template, tmpl_context, Request
 from tg import expose, flash, require, url, lurl, request, redirect, validate
 from tg.caching import cached_property
+from tg.decorators import with_trailing_slash
 from tgext.admin import AdminController, AdminConfig, CrudRestControllerConfig
 from tgext.admin.widgets import BootstrapAdminTableFiller
 from tgext.crud import EasyCrudRestController, addopts
@@ -141,6 +142,7 @@ class FlatPagesAdminController(AdminController):
         )
 
     @expose()
+    @with_trailing_slash
     def index(self, *args, **kwargs):
         return super(FlatPagesAdminController, self).index(*args, **kwargs)
 
@@ -166,10 +168,15 @@ class RootController(TGController):
             if not predicate.is_met(request.environ):
                 abort(403, 'Forbidden')
 
+        try:
+            userid = request.identity['user'].user_id
+        except:
+            userid = None
+
         override_template(RootController._default, page.template)
         return dict(page=page,
                     tg_cache={'expire': self.CACHE_EXPIRE,
-                              'key': '%s-%s' % (page.slug, page.updated_at)})
+                              'key': '%s-%s-%s' % (page.slug, page.updated_at, userid)})
 
     @expose(content_type='text/html')
     def flatfiles(self, *args, **kwargs):
