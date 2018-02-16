@@ -9,11 +9,12 @@ from tg.decorators import with_trailing_slash
 from tgext.admin import AdminController, AdminConfig, CrudRestControllerConfig
 from tgext.admin.widgets import BootstrapAdminTableFiller
 from tgext.crud import EasyCrudRestController, addopts
-from tgext.pluggable import primary_key, app_model, plug_url
+from tgext.pluggable import instance_primary_key, app_model, plug_url
 from tw2.core import Deferred, CSSSource
 from tw2.forms import SingleSelectField, TextField, FileValidator
 
 from flatpages import model
+from flatpages.helpers import default_index_template_manage
 from flatpages.lib.widgets import MarkitUpArea
 from flatpages.model import DBSession
 
@@ -26,14 +27,14 @@ from rst2pdf.createpdf import RstToPdf
 class FlatPagesAdminConfig(AdminConfig):
     include_left_menu = False
     layout = BootstrapAdminLayout
-    default_index_template = 'genshi:flatpages.templates.manage'
+    default_index_template = default_index_template_manage
 
     class flatfile(CrudRestControllerConfig):
         class defaultCrudRestController(EasyCrudRestController):
             response_type = 'text/html'
             remember_values = ['file']
 
-            _get_current_user = lambda: getattr(request.identity['user'], primary_key(app_model.User).key)
+            _get_current_user = lambda: instance_primary_key(request.identity['user'])
 
             __form_options__ = {
                 '__hide_fields__': ['author'],
@@ -76,27 +77,36 @@ class FlatPagesAdminConfig(AdminConfig):
         ''')]
 
             # Helpers to retrieve form data
-            _get_current_user = lambda: getattr(request.identity['user'], primary_key(app_model.User).key)
+            _get_current_user = lambda: instance_primary_key(request.identity['user'])
             _get_templates = lambda: config['_flatpages']['templates']
-            _get_permissions = lambda: [('public', 'Public'), ('not_anonymous', 'Only Registered Users')] + \
-                                       DBSession.query(app_model.Permission.permission_name,
-                                                       app_model.Permission.description).all()
+            if config.get('use_sqlalchemy', False):
+                _get_permissions = lambda: [
+                    ('public', 'Public'), ('not_anonymous', 'Only Registered Users')] + \
+                    DBSession.query(app_model.Permission.permission_name,
+                                    app_model.Permission.description).all()
+            else:
+                _get_permissions = lambda: [
+                    ('public', 'Public'), ('not_anonymous', 'Only Registered Users')] + \
+                    [(p.permission_name, p.description)
+                     for p in app_model.Permission.query.find().all()]
 
             __form_options__ = {
-                '__hide_fields__': ['author'],
-                '__omit_fields__': ['uid', '_id', 'updated_at', 'created_at'],
+                '__hide_fields__': ['author', 'updated_at'],
+                '__omit_fields__': ['uid', '_id', 'created_at'],
                 '__field_order__': ['slug', 'title', 'template', 'required_permission'],
                 '__field_widget_types__': addopts(**{'template': SingleSelectField,
                                            'slug': TextField,
                                            'title': TextField,
                                            'required_permission': SingleSelectField,
                                            'content': MarkitUpArea}),
-                '__field_widget_args__': addopts(**{'author': {'value': Deferred(_get_current_user)},
-                                          'required_permission': {'prompt_text': None,
-                                                                  'options': Deferred(_get_permissions)},
-                                          'content': {'rows': 20},
-                                          'template': {'prompt_text': None,
-                                                       'options': Deferred(_get_templates)}})
+                '__field_widget_args__': addopts(**{
+                    'author': {'value': Deferred(_get_current_user)},
+                    'required_permission': {'prompt_text': None,
+                                            'options': Deferred(_get_permissions)},
+                    'content': {'rows': 20},
+                    'template': {'prompt_text': None,
+                                 'options': Deferred(_get_templates)},
+                    })
             }
 
             __table_options__ = {
@@ -113,14 +123,14 @@ class FlatPagesAdminConfig(AdminConfig):
                     extraactions = Markup('''
         <a href="%s/download" class="btn btn-default">
             <span class="glyphicon glyphicon-download-alt"></span>
-        </a>''' % obj.uid)
+        </a>''' % instance_primary_key(obj))
                 else:
                     extraactions = ''
                 return extraactions + baseactions
 
             @expose(content_type='application/pdf')
             def download(self, pageid):
-                p = DBSession.query(model.FlatPage).get(pageid) or abort(404)
+                p = model.FlatPage.by_id(pageid) or abort(404)
                 out = BytesIO()
 
                 rst2pdf = RstToPdf()

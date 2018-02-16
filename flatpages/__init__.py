@@ -4,7 +4,15 @@ import tg
 
 
 def plugme(app_config, options):
-    config = {'templates': options.get('templates', [('genshi:flatpages.templates.page', 'default')]),
+    default_index_template_page = options.get('default_index_template_page',
+                                              'genshi:flatpages.templates.page')
+    config = {'templates': options.get('templates', [(default_index_template_page, 'default')]),
+              'default_index_template_manage': options.get('default_index_template_manage',
+                                                           'genshi:flatpages.templates.manage'),
+              'default_index_template_page': options.get('default_index_template_page',
+                                                         'kajiki:flatpages.templates.page'),
               'format': options.get('format', 'rst')}
     app_config['_flatpages'] = config
+    from flatpages import model
+    tg.configuration.milestones.config_ready.register(model.configure_models)
     return dict(appid='pages', global_helpers=False)

@@ -29,7 +29,7 @@ Then at the *end of the file* call plug with flatpages::
 
     plug(base_config, 'flatpages')
 
-You will be able to access the plugged application 
+You will be able to access the plugged application
 management interface at *http://localhost:8080/pages/manage*
 while all the pages you create will be served at
 *http://localhost:8080/pages/PAGENAME*.
@@ -67,3 +67,8 @@ rendering a page, pass this to the plug call to set them:
   * ``templates`` -> This is a list of the templates available to render
     the pages. Each entry is in the form: ``("engine:package.templates.path", "Template Description")``.
 
+  * ``default_index_template_manage`` -> default template of manage pages, set it like
+    ``kajiki:flatpages.templates.manage`` to use kajiki instead of genshi
+
+  * ``default_index_template_page`` -> default template to render the pages,
+    this won't be used if you set ``templates``

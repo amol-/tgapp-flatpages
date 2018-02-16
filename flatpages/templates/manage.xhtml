@@ -1,0 +1,35 @@
+<html py:extends="master.xhtml">
+
+<head>
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type" py:replace="''"/>
+  <title>FlatPages Administration</title>
+</head>
+
+<body>
+  <div class="row">
+    <div class="col-md-12">
+      <h1 class="page-header">FlatPages Administration</h1>
+      <p class="lead">
+        This is the administration section of your FlatPages.<br/>
+        Here you can create and edit your pages or upload files to use
+        in the pages you just created.
+      </p>
+    </div>
+  </div>
+
+  <br/>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="list-group">
+        <a py:for="model in models"
+           class="list-group-item" href='${model.lower()}s/'>
+          <h4 class="list-group-item-heading">
+            <span class="glyphicon glyphicon-list-alt"></span> ${model}s
+          </h4>
+        </a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
