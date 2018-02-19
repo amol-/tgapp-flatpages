@@ -14,7 +14,6 @@ install_requires=[
     "docutils",
     "tgext.admin >= 0.7.1",
     "tgext.crud >= 0.8.1",
-    "genshi",
     "filedepot",
     "rst2pdf"
 ]
@@ -27,12 +26,12 @@ except IOError:
 
 setup(
     name='tgapp-flatpages',
-    version='0.2.2',
-    description='Pluggable application to manage static pages (/about) on DB with RST',
+    version='0.3.0',
+    description='Pluggable application to manage static pages (/about) on DB (sqlalchemy or ming) with RST or html',
     long_description=README,
     author='Alessandro Molina',
     author_email='alessandro.molina@axant.it',
-    url='https://github.com/amol-/tgapp-flatpages',
+    url='https://github.com/axant/tgapp-flatpages',
     keywords='turbogears2.application',
     packages=find_packages(exclude=['ez_setup']),
     install_requires=install_requires,

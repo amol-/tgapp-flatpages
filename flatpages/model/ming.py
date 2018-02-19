@@ -5,6 +5,7 @@ import os
 from ming import schema as s
 from ming.odm import FieldProperty, ForeignIdProperty, RelationProperty
 from ming.odm.declarative import MappedClass
+from ming.odm.mapper import MapperExtension
 from bson import ObjectId
 
 from flatpages import model
@@ -18,11 +19,17 @@ from flatpages.helpers import default_index_template_page
 from depot.fields.ming import UploadedFileProperty
 
 
+class UpdateDate(MapperExtension):
+    def before_update(self, instance, state, sess):
+        instance.updated_at = datetime.utcnow()
+
+
 class FlatPage(MappedClass):
     class __mongometa__:
         session = model.DBSession
         name = 'flatpages_page'
         unique_indexes = [('slug', )]
+        extensions = [ UpdateDate ]
 
     _id = FieldProperty(s.ObjectId)
 
@@ -32,8 +39,8 @@ class FlatPage(MappedClass):
     content = FieldProperty(s.String, if_missing='')
     required_permission = FieldProperty(s.String)
 
-    updated_at = FieldProperty(s.DateTime, if_missing=datetime.utcnow)  # TODO: onupdate
-    created_at = FieldProperty(s.DateTime, if_missing=datetime.utcnow)  # don't do onupdate
+    updated_at = FieldProperty(s.DateTime, if_missing=datetime.utcnow)
+    created_at = FieldProperty(s.DateTime, if_missing=datetime.utcnow)
 
     author_id = ForeignIdProperty('User')
     author = RelationProperty('User')
@@ -49,6 +56,11 @@ class FlatPage(MappedClass):
     @cached_property
     def url(self):
         return plug_url('flatpages', '/' + self.slug)
+
+    @classmethod
+    def all_pages(cls):
+        """Returns a list of tuples with title and url of all the flat pages"""
+        return [(page.title, page.url) for page in cls.query.find()]
 
     @cached_property
     def html_content(self):
@@ -70,13 +82,14 @@ class FlatFile(MappedClass):
         session = model.DBSession
         name = 'flatpages_file'
         unique_indexes = [('name')]
+        extensions = [ UpdateDate ]
 
     _id = FieldProperty(s.ObjectId)
 
     name = FieldProperty(s.String, required=True)
-    file = FieldProperty(UploadedFileProperty(upload_storage='flatfiles'), required=True)
+    file = UploadedFileProperty(upload_storage='flatfiles')
 
-    updated_at = FieldProperty(s.DateTime, if_missing=datetime.utcnow)  # TODO: onupdate as above
+    updated_at = FieldProperty(s.DateTime, if_missing=datetime.utcnow)
     created_at = FieldProperty(s.DateTime, if_missing=datetime.utcnow)
 
     author_id = ForeignIdProperty('User')

@@ -72,3 +72,13 @@ rendering a page, pass this to the plug call to set them:
 
   * ``default_index_template_page`` -> default template to render the pages,
     this won't be used if you set ``templates``
+
+Overriding crud templates
+-------------------------
+
+you can find tgext.admin templates here: https://github.com/TurboGears/tgext.admin/tree/master/tgext/admin/templates/bootstrap_crud
+and override them in your app_cfg.py with something like::
+
+    replace_template(base_config,
+                     'tgext.admin.templates.bootstrap_crud.get_all',
+                     'myproject.templates.crud.get_all')

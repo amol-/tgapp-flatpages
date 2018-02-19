@@ -39,11 +39,12 @@ class FlatPagesAdminConfig(AdminConfig):
             __form_options__ = {
                 '__hide_fields__': ['author'],
                 '__omit_fields__': ['uid', '_id', 'updated_at', 'created_at'],
-                '__field_widget_args__': addopts(author={'value': Deferred(_get_current_user)})
+                '__field_widget_args__': addopts(author={'value': Deferred(_get_current_user)},
+                                                 file={'required': True})
             }
 
             __form_edit_options__ = {
-                '__field_validators__': {'file': FileValidator(required=False)}
+                '__field_widget_args__': addopts(**{'file': {'required': False}})
             }
 
             __table_options__ = {
