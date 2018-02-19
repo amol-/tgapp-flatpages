@@ -15,7 +15,6 @@ from datetime import datetime
 from tg import config
 from tg.caching import cached_property
 from flatpages.lib.formatters import FORMATTERS
-from flatpages.helpers import default_index_template_page
 from depot.fields.ming import UploadedFileProperty
 
 
@@ -33,7 +32,7 @@ class FlatPage(MappedClass):
 
     _id = FieldProperty(s.ObjectId)
 
-    template = FieldProperty(s.String, if_missing=default_index_template_page)
+    template = FieldProperty(s.String, if_missing=config['_flatpages'].get('templates')[0][0])
     slug = FieldProperty(s.String, required=True)
     title = FieldProperty(s.String, required=True)
     content = FieldProperty(s.String, if_missing='')

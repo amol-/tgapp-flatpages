@@ -14,7 +14,6 @@ from tw2.core import Deferred, CSSSource
 from tw2.forms import SingleSelectField, TextField, FileValidator
 
 from flatpages import model
-from flatpages.helpers import default_index_template_manage
 from flatpages.lib.widgets import MarkitUpArea
 from flatpages.model import DBSession
 
@@ -27,7 +26,7 @@ from rst2pdf.createpdf import RstToPdf
 class FlatPagesAdminConfig(AdminConfig):
     include_left_menu = False
     layout = BootstrapAdminLayout
-    default_index_template = default_index_template_manage
+    default_index_template = 'kajiki:flatpages.templates.manage'
 
     class flatfile(CrudRestControllerConfig):
         class defaultCrudRestController(EasyCrudRestController):

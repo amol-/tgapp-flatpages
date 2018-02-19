@@ -67,12 +67,6 @@ rendering a page, pass this to the plug call to set them:
   * ``templates`` -> This is a list of the templates available to render
     the pages. Each entry is in the form: ``("engine:package.templates.path", "Template Description")``.
 
-  * ``default_index_template_manage`` -> default template of manage pages, set it like
-    ``kajiki:flatpages.templates.manage`` to use kajiki instead of genshi
-
-  * ``default_index_template_page`` -> default template to render the pages,
-    this won't be used if you set ``templates``
-
 Overriding crud templates
 -------------------------
 

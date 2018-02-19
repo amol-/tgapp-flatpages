@@ -6,7 +6,6 @@ from sqlalchemy import ForeignKey, Column
 from sqlalchemy.types import Unicode, Integer, DateTime
 from sqlalchemy.orm import backref, relation
 
-from flatpages.helpers import default_index_template_page
 from flatpages.model import DeclarativeBase, DBSession
 from tgext.pluggable import app_model, primary_key, plug_url
 
@@ -22,7 +21,7 @@ class FlatPage(DeclarativeBase):
 
     uid = Column(Integer, autoincrement=True, primary_key=True)
 
-    template = Column(Unicode(1024), nullable=False, default=default_index_template_page)
+    template = Column(Unicode(1024), nullable=False, default=config['_flatpages'].get('templates')[0][0])
     slug = Column(Unicode(128), index=True, unique=True, nullable=False)
     title = Column(Unicode(512), nullable=False)
     content = Column(Unicode(64000), default='')

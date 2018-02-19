@@ -15,7 +15,8 @@ install_requires=[
     "tgext.admin >= 0.7.1",
     "tgext.crud >= 0.8.1",
     "filedepot",
-    "rst2pdf"
+    "rst2pdf",
+    "kajiki",
 ]
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -26,7 +27,7 @@ except IOError:
 
 setup(
     name='tgapp-flatpages',
-    version='0.3.0',
+    version='0.3.1',
     description='Pluggable application to manage static pages (/about) on DB (sqlalchemy or ming) with RST or html',
     long_description=README,
     author='Alessandro Molina',
