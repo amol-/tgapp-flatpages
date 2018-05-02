@@ -3,7 +3,7 @@
 from io import BytesIO
 from markupsafe import Markup
 from tg import TGController, predicates, config, abort, override_template, tmpl_context, Request
-from tg import expose, flash, require, url, lurl, request, redirect, validate
+from tg import expose, flash, require, url, lurl, request, redirect, validate, hooks
 from tg.caching import cached_property
 from tg.decorators import with_trailing_slash
 from tgext.admin import AdminController, AdminConfig, CrudRestControllerConfig
@@ -184,6 +184,8 @@ class RootController(TGController):
             userid = None
 
         override_template(RootController._default, page.template)
+        hooks.notify('flatpages.before_render_page', (page, ))
+
         return dict(page=page,
                     tg_cache={'expire': self.CACHE_EXPIRE,
                               'key': '%s-%s-%s' % (page.slug, page.updated_at, userid)})

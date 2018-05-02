@@ -67,6 +67,12 @@ rendering a page, pass this to the plug call to set them:
   * ``templates`` -> This is a list of the templates available to render
     the pages. Each entry is in the form: ``("engine:package.templates.path", "Template Description")``.
 
+Example of plugin using genshi as template engine::
+
+    plug(base_config, 'flatpages', format='html',
+     templates=[("genshi:yourproject.templates.flatpages.page", "default")],
+    global_models = True)
+
 Overriding crud templates
 -------------------------
 
