@@ -164,9 +164,15 @@ class RootController(TGController):
 
     @expose()
     def _default(self, page=None, *args, **kw):
-        page = model.FlatPage.by_slug(page)
+
+        page_slug = dict(slug=page)
+        hooks.notify('flatpages.before_override_template', args=(page_slug, self))
+
+        page = model.FlatPage.by_slug(page_slug['slug'])
+
         if page is None:
             abort(404, 'Page not found')
+
 
         permission = page.required_permission
         if permission and permission != 'public':
@@ -184,8 +190,8 @@ class RootController(TGController):
             userid = None
 
         override_template(RootController._default, page.template)
-        hooks.notify('flatpages.before_render_page', (page, ))
 
+        hooks.notify('flatpages.after_override_template', (page, self))
         return dict(page=page,
                     tg_cache={'expire': self.CACHE_EXPIRE,
                               'key': '%s-%s-%s' % (page.slug, page.updated_at, userid)})
