@@ -82,3 +82,19 @@ and override them in your app_cfg.py with something like::
     replace_template(base_config,
                      'tgext.admin.templates.bootstrap_crud.get_all',
                      'myproject.templates.crud.get_all')
+
+
+
+Hooks
+-----
+
+flatpages exposes some hooks to control the behavior when
+rendering a page:
+
+  * ``flatpages.before_override_template`` -> This is the hook called before the template gets overrided by the info,
+  passed as args an object with page slug and self.
+
+  * ``flatpages.after_override_template`` ->  This is the hook called after the template gets overrided by the info,
+  passed as args an object of FlatPage and self .
+
+
