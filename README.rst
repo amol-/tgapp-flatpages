@@ -91,10 +91,8 @@ Hooks
 flatpages exposes some hooks to control the behavior when
 rendering a page:
 
-  * ``flatpages.before_override_template`` -> This is the hook called before the template gets overrided by the info,
-  passed as args an object with page slug and self.
+  * ``flatpages.before_override_template`` -> This is the hook called before the template gets overrided by the info, passed as args an object with page slug and self.
 
-  * ``flatpages.after_override_template`` ->  This is the hook called after the template gets overrided by the info,
-  passed as args an object of FlatPage and self .
+  * ``flatpages.after_override_template`` ->  This is the hook called after the template gets overrided by the info, passed as args an object of FlatPage and self .
 
 
