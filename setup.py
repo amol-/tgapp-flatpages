@@ -27,8 +27,8 @@ except IOError:
 
 setup(
     name='tgapp-flatpages',
-    version='0.3.1',
-    description='Pluggable application to manage static pages (/about) on DB (sqlalchemy or ming) with RST or html',
+    version='0.3.2',
+    description='Pluggable application to manage static pages (/about) on DB (sqlalchemy or ming) with RST or HTML',
     long_description=README,
     author='Alessandro Molina',
     author_email='alessandro.molina@axant.it',

@@ -67,6 +67,12 @@ rendering a page, pass this to the plug call to set them:
   * ``templates`` -> This is a list of the templates available to render
     the pages. Each entry is in the form: ``("engine:package.templates.path", "Template Description")``.
 
+Example of plugin using genshi as template engine::
+
+    plug(base_config, 'flatpages', format='html',
+     templates=[("genshi:yourproject.templates.flatpages.page", "default")],
+    global_models = True)
+
 Overriding crud templates
 -------------------------
 
@@ -76,3 +82,17 @@ and override them in your app_cfg.py with something like::
     replace_template(base_config,
                      'tgext.admin.templates.bootstrap_crud.get_all',
                      'myproject.templates.crud.get_all')
+
+
+
+Hooks
+-----
+
+flatpages exposes some hooks to control the behavior when
+rendering a page:
+
+  * ``flatpages.before_override_template`` -> This is the hook called before the template gets overrided by the info, passed as args an object with page slug and self.
+
+  * ``flatpages.after_override_template`` ->  This is the hook called after the template gets overrided by the info, passed as args an object of FlatPage and self .
+
+
