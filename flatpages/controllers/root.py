@@ -20,7 +20,6 @@ from flatpages.model import DBSession
 from tgext.admin.layouts import BootstrapAdminLayout
 from depot.middleware import DepotMiddleware
 from tg.exceptions import HTTPNotFound
-from rst2pdf.createpdf import RstToPdf
 
 
 class FlatPagesAdminConfig(AdminConfig):
@@ -130,6 +129,7 @@ class FlatPagesAdminConfig(AdminConfig):
 
             @expose(content_type='application/pdf')
             def download(self, pageid):
+                from rst2pdf.createpdf import RstToPdf
                 p = model.FlatPage.by_id(pageid) or abort(404)
                 out = BytesIO()
 

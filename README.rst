@@ -62,7 +62,7 @@ flatpages exposes some options to control the behavior when
 rendering a page, pass this to the plug call to set them:
 
   * ``format`` -> This is the format used to render the page content,
-    can be **html** or **rst** if you store pages in RST or HTML format.
+    can be **html** or **rst** if you store pages in RST or HTML format. from version 0.4.0 defaults to **html**
 
   * ``templates`` -> This is a list of the templates available to render
     the pages. Each entry is in the form: ``("engine:package.templates.path", "Template Description")``.
