@@ -19,9 +19,9 @@ def configure_models():
     global FlatPage, FlatFile, DeclarativeBase
     if tg.config.get('use_sqlalchemy', False):
         log.info('Configuring FlatPages for SQLAclhemy')
-        from .sqla import FlatPage, FlatFile
         from sqlalchemy.ext.declarative import declarative_base
         DeclarativeBase = declarative_base()
+        from .sqla import FlatPage, FlatFile
     elif tg.config.get('use_ming', False):
         log.info('Configuring FlatPages for Ming')
         from .ming import FlatPage, FlatFile
